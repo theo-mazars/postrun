@@ -1,11 +1,13 @@
 package main
+
 import (
-  "fmt"
-  "os"
+	"fmt"
+	"os"
 
-  "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 
-  "github.com/theo-mazars/postrun/internal/config"
+	"github.com/theo-mazars/postrun/internal/config"
+	"github.com/theo-mazars/postrun/internal/dns"
 )
 
 var cfgFile string
@@ -34,10 +36,28 @@ var sendCmd = &cobra.Command{
   },
 }
 
+var mxCmd = &cobra.Command{
+  Use: "mx [email]",
+  Short: "Lookup MX records for email domain",
+  Args: cobra.ExactArgs(1),
+  Run: func(cmd *cobra.Command, args []string) {
+    email := args[0]
+    records, err := dns.LookupMX(email)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "MX lookup failed: %v\n", err)
+      os.Exit(1)
+    }
+    for _, mx := range records {
+      fmt.Printf("• %3d\t%s\n", mx.Pref, mx.Host)
+    }
+  },
+}
+
 func init() {
   rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file path")
   rootCmd.AddCommand(versionCmd)
   rootCmd.AddCommand(sendCmd)
+  rootCmd.AddCommand(mxCmd)
 }
 
 func main() {
