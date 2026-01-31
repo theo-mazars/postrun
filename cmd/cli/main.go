@@ -8,6 +8,7 @@ import (
 
 	"github.com/theo-mazars/postrun/internal/config"
 	"github.com/theo-mazars/postrun/internal/dns"
+	"github.com/theo-mazars/postrun/internal/smtp"
 )
 
 var cfgFile string
@@ -31,8 +32,27 @@ var sendCmd = &cobra.Command{
   Short: "Send an email",
   Run: func(cmd *cobra.Command, args []string) {
     cfg := config.Load(cfgFile)
-    fmt.Printf("Loaded Config: %+v\n", cfg)
-    fmt.Println("TODO: actually send email")
+
+    to, _ := cmd.Flags().GetString("to")
+    from, _ := cmd.Flags().GetString("from")
+    subject, _ := cmd.Flags().GetString("subject")
+    body, _ := cmd.Flags().GetString("body")
+
+    email := &smtp.Email{
+      From: from,
+      To: to,
+      Subject: subject,
+      Body: body,
+    }
+
+    sender := smtp.NewSender(cfg.SMTP.Domain)
+    result, err := sender.Send(email)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "Send failed: %v\n", err)
+      os.Exit(1)
+    }
+
+    fmt.Printf("Result: success=%v code=%d message=%s\n", result.Success, result.Code, result.Message)
   },
 }
 
@@ -58,6 +78,12 @@ func init() {
   rootCmd.AddCommand(versionCmd)
   rootCmd.AddCommand(sendCmd)
   rootCmd.AddCommand(mxCmd)
+  sendCmd.Flags().String("to", "", "recipient email")
+  sendCmd.Flags().String("from", "", "sender email")
+  sendCmd.Flags().String("subject", "Test", "email subject")
+  sendCmd.Flags().String("body", "Hello from postrung", "email body")
+  sendCmd.MarkFlagRequired("to")
+  sendCmd.MarkFlagRequired("from")
 }
 
 func main() {
