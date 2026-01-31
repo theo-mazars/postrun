@@ -15,6 +15,16 @@ func LookupMX(email string) ([]net.MX, error) {
   }
 
   domain := parts[1]
+
+  if domain == "localhost" {
+    records := make([]net.MX, 1)
+    records[0] = net.MX{
+      Host: "localhost",
+      Pref: 0,
+    }
+    return records, nil
+  }
+
   mxRecords, err := net.LookupMX(domain)
   if err != nil {
     return nil, fmt.Errorf("MX Lookup failed: %w", err)
