@@ -206,8 +206,7 @@ func buildMessage(email *Email) string {
 	msg.WriteString("\r\n")
 
 	// Email Body
-	lines := strings.Split(email.Body, "\n")
-	for _, line := range lines {
+	for line := range strings.SplitSeq(email.Body, "\n") {
 		if strings.HasPrefix(line, ".") {
 			msg.WriteString(".")
 		}
