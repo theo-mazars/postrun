@@ -168,7 +168,7 @@ func (sess *session) data(email *Email) (*SMTPResponse, error) {
 		return nil, err
 	}
 
-	if err := sess.sendCmd("\r\n.\r\n"); err != nil {
+	if err := sess.sendCmd("\r\n."); err != nil {
 		return nil, err
 	}
 
@@ -212,7 +212,6 @@ func buildMessage(email *Email) string {
 		}
 		msg.WriteString(line + "\r\n")
 	}
-	msg.WriteString(email.Body)
 
 	return msg.String()
 }
