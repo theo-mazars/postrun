@@ -31,6 +31,7 @@ func NewSender(helloDomain string) *Sender {
 }
 
 func (s *Sender) Send(email *Email) (*SMTPResponse, error) {
+  startTime := time.Now()
 	mxRecords, err := dns.LookupMX(email.To)
 	if err != nil {
 		return nil, err
@@ -73,6 +74,7 @@ func (s *Sender) Send(email *Email) (*SMTPResponse, error) {
 		}
 
 		sess.close()
+		fmt.Printf("* Elapsed time: %s\n", time.Since(startTime))
 		return res, nil
 	}
 
