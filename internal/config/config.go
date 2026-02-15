@@ -18,7 +18,11 @@ type SMTPConfig struct {
 }
 
 type DatabaseConfig struct {
-  Path string `mapstructure:"path"`
+  Host string `mapstructure:"host"`
+  Port int `mapstructure:"port"`
+  User string `mapstructure:"user"`
+  Pass string `mapstructure:"pass"`
+  Name string `mapstructure:"name"`
 }
 
 type ServerConfig struct {
@@ -40,7 +44,6 @@ func Load(path string) *Config {
   viper.AutomaticEnv()
 
   viper.SetDefault("server.port", 8080)
-  viper.SetDefault("database.path", "./postrun.db")
 
   if err := viper.ReadInConfig(); err != nil {
     if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
