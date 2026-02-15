@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"time"
 )
@@ -17,6 +18,14 @@ type session struct {
 }
 
 func (sess *session) close() {
+  err := sess.sendCmd("QUIT")
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "cmd: QUIT: %v", err)
+  }
+ 	code, msg, err := sess.readResponse()
+	if code != 221 {
+	  fmt.Fprintf(os.Stderr, "cmd: QUIT: %v: %v", err, msg)
+	}
 	sess.conn.Close()
 }
 
@@ -178,15 +187,6 @@ func (sess *session) data(email *Email) (*SMTPResponse, error) {
 	}
 	if code != 250 {
 		return &SMTPResponse{false, code, msg}, nil
-	}
-
-	err = sess.sendCmd("QUIT")
-	if err != nil {
-		return &SMTPResponse{true, code, msg}, nil
-	}
-	code, msg, err = sess.readResponse()
-	if code != 221 {
-		return &SMTPResponse{true, code, msg}, nil
 	}
 
 	return &SMTPResponse{true, code, msg}, nil
