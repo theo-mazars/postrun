@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"net/mail"
 	"time"
 
 	"github.com/theo-mazars/postrun/internal/dns"
 )
 
 type Email struct {
-	From    string
-	To      string
+	From    *mail.Address
+	To      *mail.Address
 	Subject string
 	Body    string
 }
@@ -32,7 +33,7 @@ func NewSender(helloDomain string) *Sender {
 
 func (s *Sender) Send(email *Email) (*SMTPResponse, error) {
   startTime := time.Now()
-	mxRecords, err := dns.LookupMX(email.To)
+	mxRecords, err := dns.LookupMX(email.To.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func (s *Sender) Send(email *Email) (*SMTPResponse, error) {
 			return &SMTPResponse{false, code, msg}, nil
 		}
 
-		res, err := sess.mailFrom(email.From)
+		res, err := sess.mailFrom(email.From.Address)
 		if err != nil {
 			return nil, err
 		}
@@ -60,7 +61,7 @@ func (s *Sender) Send(email *Email) (*SMTPResponse, error) {
 			return res, nil
 		}
 
-		res, err = sess.rcptTo(email.To)
+		res, err = sess.rcptTo(email.To.Address)
 		if err != nil {
 			return nil, err
 		}

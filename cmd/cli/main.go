@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/mail"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,10 +34,19 @@ var sendCmd = &cobra.Command{
   Run: func(cmd *cobra.Command, args []string) {
     cfg := config.Load(cfgFile)
 
-    to, _ := cmd.Flags().GetString("to")
-    from, _ := cmd.Flags().GetString("from")
+    fromStr, _ := cmd.Flags().GetString("from")
+    toStr, _ := cmd.Flags().GetString("to")
     subject, _ := cmd.Flags().GetString("subject")
     body, _ := cmd.Flags().GetString("body")
+
+    from, err := mail.ParseAddress(fromStr)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "Invalid From address: %v\n", err)
+    }
+    to, err := mail.ParseAddress(toStr)
+    if err != nil {
+      fmt.Fprintf(os.Stderr, "Invalid To address: %v\n", err)
+    }
 
     email := &smtp.Email{
       From: from,
