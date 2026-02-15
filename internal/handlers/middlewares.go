@@ -19,10 +19,11 @@ func (s *Server) AuthMiddleware(next http.Handler) http.Handler {
 
 		var (
 			id     string
+			domainId string
 			domain string
 		)
 		err = s.pool.QueryRow(`
-			SELECT k.id, d.domain
+			SELECT k.id, d.id AS domain_id, d.domain
 			FROM api_keys AS k
 			INNER JOIN domains AS d ON (k.domain_id=d.id)
 			WHERE key_hash=$1
@@ -30,7 +31,7 @@ func (s *Server) AuthMiddleware(next http.Handler) http.Handler {
 				AND d.is_active=true
 		`,
 			apiKeyHash,
-		).Scan(&id, &domain)
+		).Scan(&id, &domainId, &domain)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				w.WriteHeader(http.StatusUnauthorized)
@@ -41,6 +42,7 @@ func (s *Server) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), "api_key", id)
+		ctx = context.WithValue(ctx, "domain_id", domainId)
 		ctx = context.WithValue(ctx, "domain", domain)
 
 		next.ServeHTTP(w, r.WithContext(ctx))

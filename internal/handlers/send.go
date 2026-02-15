@@ -21,6 +21,9 @@ type SendRequest struct {
 
 func (s *Server) SendHandler(w http.ResponseWriter, r *http.Request) {
   sendRequest := &SendRequest{}
+  apiKey := r.Context().Value("api_key").(string)
+  domainId := r.Context().Value("domain_id").(string)
+  domain := r.Context().Value("domain").(string)
 
   err := json.NewDecoder(r.Body).Decode(&sendRequest)
   if err != nil {
@@ -34,17 +37,21 @@ func (s *Server) SendHandler(w http.ResponseWriter, r *http.Request) {
     fmt.Println(err)
     return
   }
-  if !strings.HasSuffix(email.From.Address, r.Context().Value("domain").(string)) {
+  if !strings.HasSuffix(email.From.Address, domain) {
     w.WriteHeader(http.StatusUnauthorized)
     return
   }
 
-  sender := smtp.NewSender(r.Context().Value("domain").(string))
+  sender := smtp.NewSender(domain)
   response, err := sender.Send(email)
   if err != nil {
     w.WriteHeader(http.StatusInternalServerError)
     fmt.Println(err)
     return
+  }
+  err = s.logEmail(response, email, apiKey, domainId)
+  if err != nil {
+    fmt.Println(err)
   }
   if response.Code != 250 {
     w.WriteHeader(http.StatusBadRequest)
@@ -54,6 +61,25 @@ func (s *Server) SendHandler(w http.ResponseWriter, r *http.Request) {
 
   w.WriteHeader(http.StatusOK)
   w.Write([]byte(response.Message))
+}
+
+func (s *Server) logEmail(status *smtp.SMTPResponse, email *smtp.Email, key string, domain string) error {
+  _, err := s.pool.Exec(`
+    INSERT INTO emails
+      (domain_id, api_key_id, message_id, from_address, to_address, subject, smtp_response_code, smtp_response_text)
+    VALUES
+      ($1, $2, $3, $4, $5, $6, $7, $8)
+  `,
+    domain,
+    key,
+    email.Id,
+    email.From.Address,
+    email.To.Address,
+    email.Subject,
+    status.Code,
+    status.Message,
+  )
+  return err
 }
 
 func (s *SendRequest) validate() (*smtp.Email, error) {
