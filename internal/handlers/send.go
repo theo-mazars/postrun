@@ -13,10 +13,10 @@ import (
 )
 
 type SendRequest struct {
-  From    string `json:"from" validate:"nonzero"`
-	To      string `json:"to" validate:"nonzero"`
-	Subject string `json:"subject" validate:"nonzero"`
-	Text    string `json:"text" validate:"nonzero"`
+  From    string `json:"from"`
+	To      string `json:"to"`
+	Subject string `json:"subject"`
+	Text    string `json:"text"`
 }
 
 type ErrorResponse struct {
@@ -33,25 +33,24 @@ func (s *Server) SendHandler(w http.ResponseWriter, r *http.Request) {
 
   err := json.NewDecoder(r.Body).Decode(&sendRequest)
   if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
+    returnHTTPError(w, 400, &ErrorResponse{"bad_request", "Bad Request", "missing body"})
     return
   }
 
   email, err := sendRequest.validate()
   if err != nil {
-    w.WriteHeader(http.StatusBadRequest)
-    fmt.Println(err)
+    returnHTTPError(w, 400, &ErrorResponse{"bad_request", "Bad Request", err.Error()})
     return
   }
   if !strings.HasSuffix(email.From.Address, domain) {
-    w.WriteHeader(http.StatusUnauthorized)
+    returnHTTPError(w, 401, &ErrorResponse{"bad_domain", "Bad Domain", fmt.Sprintf("%s: api key cannot send for this domain", domain)})
     return
   }
 
   sender := smtp.NewSender(domain)
   response, err := sender.Send(email)
   if err != nil {
-    w.WriteHeader(http.StatusInternalServerError)
+    returnHTTPError(w, 500, &ErrorResponse{"internal_server_error", "Internal Server Error", "If you're admin, check logs"})
     fmt.Println(err)
     return
   }
@@ -65,7 +64,6 @@ func (s *Server) SendHandler(w http.ResponseWriter, r *http.Request) {
   }
 
   w.WriteHeader(http.StatusOK)
-  w.Write([]byte(response.Message))
 }
 
 func (s *Server) logEmail(status *smtp.SMTPResponse, email *smtp.Email, key string, domain string) error {
@@ -95,7 +93,14 @@ func (s *SendRequest) validate() (*smtp.Email, error) {
 
   to, err := mail.ParseAddress(s.To)
   if err != nil {
-    return nil, fmt.Errorf("from: %s", err)
+    return nil, fmt.Errorf("to: %s", err)
+  }
+
+  if s.Subject == "" {
+    return nil, fmt.Errorf("subject: empty subject is not allowed")
+  }
+  if s.Text == "" {
+    return nil, fmt.Errorf("text: empty text is not allowed")
   }
 
   return &smtp.Email{
@@ -105,60 +110,4 @@ func (s *SendRequest) validate() (*smtp.Email, error) {
     Subject: s.Subject,
     Body: s.Text,
   }, nil
-}
-
-func returnHTTPError(w http.ResponseWriter, status int, response *ErrorResponse) {
-  body, err := json.Marshal(response)
-  if err != nil {
-    w.WriteHeader(http.StatusInternalServerError)
-    return
-  }
-  w.Header().Set("Content-Type", "application/json")
-  w.WriteHeader(status)
-  w.Write(body)
-}
-
-func smtp2httpCode(w http.ResponseWriter, response *smtp.SMTPResponse) {
-  details := fmt.Sprintf("[%d]: %s", response.Code, response.Message)
-
-  switch response.Code {
-  case 421:
-    returnHTTPError(w, 503, &ErrorResponse{"service_unavailable", "SMTP Service not available", details})
-  case 450:
-    returnHTTPError(w, 503, &ErrorResponse{"mailbox_unavailable", "Mailbox busy or temporarily blocked", details})
-  case 451:
-    returnHTTPError(w, 503, &ErrorResponse{"requested_action_aborted", "Local error", details})
-  case 452:
-    returnHTTPError(w, 422, &ErrorResponse{"mailbox_full", "Insufficient storage", details})
-  case 454:
-    returnHTTPError(w, 503, &ErrorResponse{"temporary_failure", "Temporary authentication failure", details})
-  case 500:
-    returnHTTPError(w, 502, &ErrorResponse{"syntax_error", "Command unrecognized", details})
-  case 501:
-    returnHTTPError(w, 502, &ErrorResponse{"syntax_error", "Parameter or Argument error", details})
-  case 502:
-    returnHTTPError(w, 502, &ErrorResponse{"command_unimplemented", "Command not implemented", details})
-  case 503:
-    returnHTTPError(w, 502, &ErrorResponse{"command_bad_sequence", "Bad sequence of commands", details})
-  case 504:
-    returnHTTPError(w, 502, &ErrorResponse{"command_parameter_unimplemented", "Command parameter not implemented", details})
-  case 521:
-    returnHTTPError(w, 400, &ErrorResponse{"mail_not_accepted", "Server does not accept mails", details})
-  case 530:
-    returnHTTPError(w, 401, &ErrorResponse{"auth_required", "Authentication required", details})
-  case 550:
-    returnHTTPError(w, 400, &ErrorResponse{"mailbox_not_found", "Mailbox not found", details})
-  case 551:
-    returnHTTPError(w, 400, &ErrorResponse{"user_not_local", "User not local", details})
-  case 552:
-    returnHTTPError(w, 422, &ErrorResponse{"exceed_storage", "Exceeded storage allocation", details})
-  case 553:
-    returnHTTPError(w, 400, &ErrorResponse{"mailbox_not_allowed", "Mailbox name not allowed", details})
-  case 554:
-    returnHTTPError(w, 422, &ErrorResponse{"transaction_failed", "spam/policy rejection", details})
-  case 556:
-    returnHTTPError(w, 400, &ErrorResponse{"domain_reject", "Domain does not accept mail", details})
-  default:
-    returnHTTPError(w, 500, &ErrorResponse{"internal_server_error", "Unknown SMTP Error", details})
-  }
 }
