@@ -7,10 +7,12 @@ import (
 	"net/mail"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/theo-mazars/postrun/internal/dns"
 )
 
 type Email struct {
+	Id      uuid.UUID
 	From    *mail.Address
 	To      *mail.Address
 	Subject string

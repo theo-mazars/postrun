@@ -199,7 +199,7 @@ func buildMessage(email *Email) string {
 	msg.WriteString(fmt.Sprintf("From: %s\r\n", email.From))
 	msg.WriteString(fmt.Sprintf("To: %s\r\n", email.To))
 	msg.WriteString(fmt.Sprintf("Subject: %s\r\n", email.Subject))
-	msg.WriteString(fmt.Sprintf("Message-ID: <%d.%s>\r\n", time.Now().UnixNano(), email.From))
+	msg.WriteString(fmt.Sprintf("Message-ID: <%s.%s>\r\n", email.Id.String(), email.From.Address))
 	msg.WriteString(fmt.Sprintf("Date: %s\r\n", time.Now().Format(time.RFC1123Z)))
 	msg.WriteString("MIME-Version: 1.0\r\n")
 	msg.WriteString("Content-Type: text/plain; charset=UTF-8\r\n")

@@ -7,6 +7,8 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/google/uuid"
+
 	"github.com/theo-mazars/postrun/internal/smtp"
 )
 
@@ -66,6 +68,7 @@ func (s *SendRequest) validate() (*smtp.Email, error) {
   }
 
   return &smtp.Email{
+    Id: uuid.New(),
     From: from,
     To: to,
     Subject: s.Subject,
