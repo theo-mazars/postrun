@@ -410,6 +410,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lucide/svelte@npm:^0.575.0":
+  version: 0.575.0
+  resolution: "@lucide/svelte@npm:0.575.0"
+  peerDependencies:
+    svelte: ^5
+  checksum: 10c0/239dc500f4cf90159363c255bf4607bf37bca0b6727a121a7ea1393a7d6d7bb074171df5d1e10b6ac656f740542684ec080d798bbb934473b8cacf02f86efa9a
+  languageName: node
+  linkType: hard
+
 "@napi-rs/wasm-runtime@npm:^1.1.1":
   version: 1.1.1
   resolution: "@napi-rs/wasm-runtime@npm:1.1.1"
@@ -1288,11 +1297,13 @@ __metadata:
   dependencies:
     "@eslint/compat": "npm:^2.0.2"
     "@eslint/js": "npm:^9.39.2"
+    "@lucide/svelte": "npm:^0.575.0"
     "@sveltejs/adapter-auto": "npm:^7.0.0"
     "@sveltejs/kit": "npm:^2.50.2"
     "@sveltejs/vite-plugin-svelte": "npm:^6.2.4"
     "@tailwindcss/vite": "npm:^4.1.18"
     "@types/node": "npm:^22"
+    clsx: "npm:^2.1.1"
     eslint: "npm:^9.39.2"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-svelte: "npm:^3.14.0"
@@ -1302,7 +1313,10 @@ __metadata:
     prettier-plugin-tailwindcss: "npm:^0.7.2"
     svelte: "npm:^5.49.2"
     svelte-check: "npm:^4.3.6"
+    tailwind-merge: "npm:^3.4.0"
+    tailwind-variants: "npm:^3.2.2"
     tailwindcss: "npm:^4.1.18"
+    tw-animate-css: "npm:^1.4.0"
     typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.54.0"
     vite: "npm:^7.3.1"
@@ -2910,6 +2924,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tailwind-merge@npm:^3.4.0":
+  version: 3.5.0
+  resolution: "tailwind-merge@npm:3.5.0"
+  checksum: 10c0/4dc588f5b5296ba3f38e1ebb41f02b6d24a8c5bb45e44b33748c118fb4b5767dd0efc464431ca3e75404056b618b5f67bec3708158baa65fed8a2fc9201e0c53
+  languageName: node
+  linkType: hard
+
+"tailwind-variants@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "tailwind-variants@npm:3.2.2"
+  peerDependencies:
+    tailwind-merge: ">=3.0.0"
+    tailwindcss: "*"
+  peerDependenciesMeta:
+    tailwind-merge:
+      optional: true
+  checksum: 10c0/715a35b66c374f3bb234cd1e6737588cb7c0213c80a69bd62239d752d20c44377bec1d028c3ea7c28882d81384507fbae407813d348c142cb991c5a0ad063d48
+  languageName: node
+  linkType: hard
+
 "tailwindcss@npm:4.2.0, tailwindcss@npm:^4.1.18":
   version: 4.2.0
   resolution: "tailwindcss@npm:4.2.0"
@@ -2967,6 +3001,13 @@ __metadata:
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10c0/9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
+  languageName: node
+  linkType: hard
+
+"tw-animate-css@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "tw-animate-css@npm:1.4.0"
+  checksum: 10c0/6cfbc19ccc73883ec80ef1f9147f43e736cb01ee99c8172968b37eb81b720523d30e38b1a96aef92db3c586d864204db5510b51744ddacbbf0ad8e3c7fb56ec7
   languageName: node
   linkType: hard
 
